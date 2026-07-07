@@ -1,0 +1,34 @@
+{
+    "name": "poi-plugin-sortie-checker",
+    "version": "1.2.0",
+    "main": "index.es",
+    "description": "Check fleet air power, LoS (Formula 33), 6-3 aerial reconnaissance score and map branching requirements before sortie",
+    "author": {
+        "name": "HKGY"
+    },
+    "repository": {
+        "type": "git",
+        "url": "git+https://github.com/HKGY/poi-plugin-sortie-checker.git"
+    },
+    "keywords": [
+        "poi",
+        "poi-plugin",
+        "kancolle",
+        "los",
+        "fighter-power",
+        "routing"
+    ],
+    "license": "MIT",
+    "poiPlugin": {
+        "title": "出击检查",
+        "description": "计算当前舰队的制空值、索敌（33式）、6-3 航空侦察分数，并对照所选海域的分歧点要求",
+        "icon": "fa/check-square",
+        "apiVer": {}
+    },
+    "files": [
+        "index.es",
+        "calc.es",
+        "mapdata.es",
+        "index.css"
+    ]
+}

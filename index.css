@@ -1,0 +1,140 @@
+.sortie-checker {
+    padding: 10px;
+    overflow-y: auto;
+    height: 100%;
+}
+
+.sortie-checker .control-row {
+    display: flex;
+    gap: 8px;
+    align-items: center;
+    margin-bottom: 10px;
+    flex-wrap: wrap;
+}
+
+.sortie-checker .stat-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+    gap: 8px;
+    margin-bottom: 10px;
+}
+
+.sortie-checker .stat-card {
+    padding: 10px 12px;
+}
+
+.sortie-checker .stat-label {
+    font-size: 12px;
+    opacity: 0.7;
+}
+
+.sortie-checker .stat-value {
+    font-size: 24px;
+    font-weight: 600;
+    line-height: 1.3;
+}
+
+.sortie-checker .stat-sub {
+    font-size: 11px;
+    opacity: 0.5;
+}
+
+.sortie-checker .los33-row {
+    display: flex;
+    gap: 12px;
+    align-items: center;
+    flex-wrap: wrap;
+    margin-top: 4px;
+}
+
+.sortie-checker .los33-item {
+    font-size: 18px;
+    font-weight: 600;
+}
+
+.sortie-checker .los33-cn {
+    font-size: 12px;
+    font-weight: 400;
+    opacity: 0.6;
+    margin-right: 4px;
+}
+
+.sortie-checker .los33-custom {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+}
+
+.sortie-checker .los33-custom .bp4-numeric-input,
+.sortie-checker .los33-custom .bp3-numeric-input {
+    width: 70px;
+}
+
+.sortie-checker .los33-custom input {
+    width: 60px;
+}
+
+.sortie-checker .rules-card {
+    padding: 12px;
+}
+
+.sortie-checker .rules-card h3 {
+    margin: 0 0 8px;
+    font-size: 14px;
+}
+
+.sortie-checker .rule-row {
+    display: flex;
+    align-items: baseline;
+    gap: 8px;
+    margin-bottom: 6px;
+}
+
+.sortie-checker .rule-tag {
+    flex-shrink: 0;
+    min-width: 72px;
+    text-align: center;
+}
+
+.sortie-checker .rule-text {
+    font-size: 13px;
+}
+
+.sortie-checker .map-note {
+    font-size: 12px;
+    opacity: 0.6;
+    margin-top: 6px;
+}
+
+.sortie-checker .rule-section {
+    margin-bottom: 12px;
+}
+
+.sortie-checker .rule-section h4 {
+    margin: 10px 0 6px;
+    font-size: 13px;
+    opacity: 0.85;
+    border-bottom: 1px solid rgba(128, 128, 128, 0.25);
+    padding-bottom: 3px;
+}
+
+.sortie-checker .special-row {
+    font-size: 13px;
+    margin-bottom: 4px;
+}
+
+.sortie-checker .fleet-row {
+    display: flex;
+    align-items: baseline;
+    gap: 8px;
+    margin-bottom: 5px;
+    font-size: 13px;
+}
+
+.sortie-checker .fleet-route {
+    opacity: 0.7;
+}
+
+.sortie-checker .fleet-note {
+    opacity: 0.7;
+}
