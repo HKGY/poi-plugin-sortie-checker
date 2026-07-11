@@ -139,6 +139,7 @@ const TP_BY_STYPE = {
     3: 2, // 軽巡洋艦
     6: 4, // 航空巡洋艦
     10: 7, // 航空戦艦
+    14: 1, // 潜水空母
     16: 9, // 水上機母艦
     17: 12, // 揚陸艦
     20: 7, // 潜水母艦
@@ -146,7 +147,9 @@ const TP_BY_STYPE = {
     22: 15, // 補給艦
 }
 
-// 装备 TP（api_type[2]）
+// 装备 TP（api_type[2]）。通常输送按类别计，无单件例外——
+// 装甲艇(AB艇)/武装大発也照大発系计 8（按 0 计的例外仅存在于
+// 战车扬陆 TP（2025春活起的另一套机制），本面板不涉及）。
 const TP_BY_T2 = {
     24: 8, // 上陸用舟艇（大発系）
     46: 2, // 特型内火艇
@@ -154,11 +157,9 @@ const TP_BY_T2 = {
     43: 1, // 戦闘糧食
 }
 
-// 大発分类中不计 TP 的例外：装甲艇(AB艇)、武装大発
-const TP_EXCLUDED_ITEMS = new Set([408, 409])
-
 /*
  * 输送 TP：S 胜取整数合计，A 胜 = ⌊S × 0.7⌋
+ * （S 为 10 的倍数时游戏内偶见浮点误差少 1，如 180→125）
  * 实战中大破/退避舰不计入，此处按出击前全员计算。
  */
 export const transportPoints = (shipRows) => {
@@ -167,7 +168,7 @@ export const transportPoints = (shipRows) => {
         total += TP_BY_STYPE[($ship && $ship.api_stype) || 0] || 0
         if (ship.api_ship_id === 487) total += 8 // 鬼怒改二
         slots.forEach(({ $item }) => {
-            if (!$item || TP_EXCLUDED_ITEMS.has($item.api_id)) return
+            if (!$item) return
             total += TP_BY_T2[$item.api_type[2]] || 0
         })
     })
