@@ -1,6 +1,7 @@
 import React, { Component } from 'react'
+import { shell } from 'electron'
 import { Button, Callout, Card, HTMLSelect, NumericInput, Tag } from '@blueprintjs/core'
-import { fleetAirPower, totalLos, los33, airReconScore } from './calc'
+import { fleetAirPower, totalLos, los33, airReconScore, transportPoints } from './calc'
 import { WORLDS, MAPS } from './mapdata'
 import './index.css'
 
@@ -23,6 +24,7 @@ const buildFleetRows = (fleetIndex) => {
     const ships = getStore('info.ships') || {}
     const equips = getStore('info.equips') || {}
     const $equips = getStore('const.$equips') || {}
+    const $ships = getStore('const.$ships') || {}
     if (!fleet || !fleet.api_ship) return []
     const rows = []
     fleet.api_ship.forEach((rosterId) => {
@@ -44,7 +46,7 @@ const buildFleetRows = (fleetIndex) => {
             const item = equips[ship.api_slot_ex]
             if (item) slots.push({ item, $item: $equips[item.api_slotitem_id], onslot: 0 })
         }
-        rows.push({ ship, slots })
+        rows.push({ ship, $ship: $ships[ship.api_ship_id], slots })
     })
     return rows
 }
@@ -98,6 +100,20 @@ const checkRule = (rule, context) => {
     if (rule.min == null || value >= rule.min) status = 'pass'
     else if (rule.randomMin != null && value >= rule.randomMin) status = 'random'
     return { value: fmt(value), status }
+}
+
+// 出击前状态检查：大破（HP≤25%）与 油弹是否补满
+const checkReadiness = (rows) => {
+    const taiha = []
+    const unsupplied = []
+    rows.forEach(({ ship, $ship }) => {
+        const name = ($ship && $ship.api_name) || `#${ship.api_id}`
+        if (ship.api_maxhp > 0 && ship.api_nowhp / ship.api_maxhp <= 0.25) taiha.push(name)
+        if ($ship && (ship.api_fuel < $ship.api_fuel_max || ship.api_bull < $ship.api_bull_max)) {
+            unsupplied.push(name)
+        }
+    })
+    return { taiha, unsupplied }
 }
 
 const STATUS_DISPLAY = {
@@ -154,6 +170,86 @@ export const reactClass = class SortieChecker extends Component {
 
     refresh = () => this.setState(({ tick }) => ({ tick: tick + 1 }))
 
+    renderReadiness(rows) {
+        const { taiha, unsupplied } = checkReadiness(rows)
+        if (!taiha.length && !unsupplied.length) {
+            return (
+                <Callout intent="success" className="readiness-callout">
+                    出击检查通过：无大破舰船，油弹全满。
+                </Callout>
+            )
+        }
+        return (
+            <div className="readiness-group">
+                {taiha.length > 0 && (
+                    <Callout intent="danger" className="readiness-callout">
+                        大破舰船（出击有轰沉风险！）：{taiha.join('、')}
+                    </Callout>
+                )}
+                {unsupplied.length > 0 && (
+                    <Callout intent="warning" className="readiness-callout">
+                        油弹未满：{unsupplied.join('、')}
+                    </Callout>
+                )}
+            </div>
+        )
+    }
+
+    // 活动图简化展示：贴条 / 攻略步骤 / 路线+推荐阵容（舰种）
+    renderEventInfo(map) {
+        return (
+            <React.Fragment>
+                {(map.tags || []).length > 0 && (
+                    <div className="rule-section">
+                        <h4>贴条（札）</h4>
+                        {map.tags.map((text, index) => (
+                            <div className="special-row" key={index}>· {text}</div>
+                        ))}
+                    </div>
+                )}
+                {(map.steps || []).length > 0 && (
+                    <div className="rule-section">
+                        <h4>攻略步骤</h4>
+                        {map.steps.map((text, index) => (
+                            <div className="special-row" key={index}>{index + 1}. {text}</div>
+                        ))}
+                    </div>
+                )}
+                {(map.phases || []).length > 0 && (
+                    <div className="rule-section">
+                        <h4>路线 / 推荐阵容（舰种）</h4>
+                        {map.phases.map((phase, index) => (
+                            <div className="phase-block" key={index}>
+                                <div className="phase-head">
+                                    <Tag minimal intent="primary" className="rule-tag">{phase.title}</Tag>
+                                    <Tag minimal className="phase-tag">札：{phase.tag}</Tag>
+                                </div>
+                                <div className="phase-body">
+                                    <div className="phase-comp"><b>{phase.comp}</b></div>
+                                    <div className="phase-route">路线：{phase.route}</div>
+                                    {phase.note && <div className="phase-note">※ {phase.note}</div>}
+                                </div>
+                            </div>
+                        ))}
+                    </div>
+                )}
+                <div className="map-note event-footnote">
+                    ※ 攻略参考自{' '}
+                    <a
+                        href="https://github.com/HKGY/2026SummerEvent"
+                        onClick={(e) => {
+                            e.preventDefault()
+                            shell.openExternal('https://github.com/HKGY/2026SummerEvent')
+                        }}
+                    >
+                        HKGY/2026SummerEvent
+                    </a>{' '}
+                    仓库的实战记录，仅供参考——请结合自身练度、装备与检证情报调整编成，对照抄导致的卡关概不负责。
+                </div>
+            </React.Fragment>
+        )
+    }
+
     renderRuleSection(title, rules, context, hint) {
         if (!rules.length) return null
         return (
@@ -193,6 +289,7 @@ export const reactClass = class SortieChecker extends Component {
         const airPower = fleetAirPower(rows)
         const losTotal = totalLos(rows)
         const recon = airReconScore(rows)
+        const tp = transportPoints(rows)
 
         return (
             <div id="sortie-checker" className="sortie-checker">
@@ -220,6 +317,8 @@ export const reactClass = class SortieChecker extends Component {
                     <Callout intent="warning">所选舰队为空，请先编成。</Callout>
                 )}
 
+                {rows.length > 0 && this.renderReadiness(rows)}
+
                 <div className="stat-grid">
                     <Card className="stat-card">
                         <div className="stat-label">制空值</div>
@@ -230,6 +329,14 @@ export const reactClass = class SortieChecker extends Component {
                         <div className="stat-label">索敌合计</div>
                         <div className="stat-value">{losTotal}</div>
                         <div className="stat-sub">面板显示值之和</div>
+                    </Card>
+                    <Card className="stat-card">
+                        <div className="stat-label">输送 TP</div>
+                        <div className="stat-value">
+                            {tp.s}
+                            <span className="tp-a"> / A胜 {tp.a}</span>
+                        </div>
+                        <div className="stat-sub">S胜 / A胜=×0.7 取整；大破·退避舰实战不计</div>
                     </Card>
                     <Card className="stat-card">
                         <div className="stat-label">6-3 航空侦察</div>
@@ -264,6 +371,15 @@ export const reactClass = class SortieChecker extends Component {
 
                 <Card className="rules-card">
                     <h3>{map.id} {map.name}</h3>
+                    {map.event ? this.renderEventInfo(map) : this.renderNormalInfo(map, context)}
+                </Card>
+            </div>
+        )
+    }
+
+    renderNormalInfo(map, context) {
+        return (
+            <React.Fragment>
                     {this.renderRuleSection('索敌 / 航空侦察要求',
                         map.rules.filter(rule => rule.kind === 'los33' || rule.kind === 'recon63'),
                         context, '※ 33式阈值以司令部 Lv120 为基准，等级较低时建议多留余量。')}
@@ -298,8 +414,7 @@ export const reactClass = class SortieChecker extends Component {
                     {map.notes && map.notes.map((note, index) => (
                         <div className="map-note" key={index}>※ {note}</div>
                     ))}
-                </Card>
-            </div>
+            </React.Fragment>
         )
     }
 }

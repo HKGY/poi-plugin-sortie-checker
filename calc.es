@@ -131,6 +131,49 @@ export const los33 = (shipRows, hqLevel, cn, fleetSlots = 6) => {
         + 2 * (fleetSlots - shipRows.length)
 }
 
+// ---------- 输送作战 TP ----------
+
+// 舰种 TP（api_stype），未列出的舰种为 0
+const TP_BY_STYPE = {
+    2: 5, // 駆逐艦
+    3: 2, // 軽巡洋艦
+    6: 4, // 航空巡洋艦
+    10: 7, // 航空戦艦
+    16: 9, // 水上機母艦
+    17: 12, // 揚陸艦
+    20: 7, // 潜水母艦
+    21: 6, // 練習巡洋艦
+    22: 15, // 補給艦
+}
+
+// 装备 TP（api_type[2]）
+const TP_BY_T2 = {
+    24: 8, // 上陸用舟艇（大発系）
+    46: 2, // 特型内火艇
+    30: 5, // 簡易輸送部材（ドラム缶）
+    43: 1, // 戦闘糧食
+}
+
+// 大発分类中不计 TP 的例外：装甲艇(AB艇)、武装大発
+const TP_EXCLUDED_ITEMS = new Set([408, 409])
+
+/*
+ * 输送 TP：S 胜取整数合计，A 胜 = ⌊S × 0.7⌋
+ * 实战中大破/退避舰不计入，此处按出击前全员计算。
+ */
+export const transportPoints = (shipRows) => {
+    let total = 0
+    shipRows.forEach(({ ship, $ship, slots }) => {
+        total += TP_BY_STYPE[($ship && $ship.api_stype) || 0] || 0
+        if (ship.api_ship_id === 487) total += 8 // 鬼怒改二
+        slots.forEach(({ $item }) => {
+            if (!$item || TP_EXCLUDED_ITEMS.has($item.api_id)) return
+            total += TP_BY_T2[$item.api_type[2]] || 0
+        })
+    })
+    return { s: total, a: Math.floor(total * 0.7) }
+}
+
 // ---------- 6-3 航空侦察 ----------
 
 /*

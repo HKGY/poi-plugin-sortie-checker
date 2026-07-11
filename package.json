@@ -1,6 +1,6 @@
 {
     "name": "poi-plugin-sortie-checker",
-    "version": "1.2.0",
+    "version": "1.3.0",
     "main": "index.es",
     "description": "Check fleet air power, LoS (Formula 33), 6-3 aerial reconnaissance score and map branching requirements before sortie",
     "author": {
@@ -21,7 +21,7 @@
     "license": "MIT",
     "poiPlugin": {
         "title": "出击检查",
-        "description": "计算当前舰队的制空值、索敌（33式）、6-3 航空侦察分数，并对照所选海域的分歧点要求",
+        "description": "出击前检查大破/补给状态，计算制空值、索敌（33式）、输送TP、6-3 航空侦察分数，并对照所选海域的分歧点要求（含 2026 夏活 62-1/2/3 攻略）",
         "icon": "fa/check-square",
         "apiVer": {}
     },
